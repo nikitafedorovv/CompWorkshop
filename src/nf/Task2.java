@@ -114,7 +114,7 @@ public class Task2 {
         return answer;
     }
 
-    public static void main(String[] args) {
+    public static void go() {
         double[][] systemAsArray = {{0.00008164, -0.4772, 4.7292, 5.07181},
                                     {0.7564    , -0.4772, 1.9592, 2.51058},
                                     {0.00010364,  1.1228, 1.4092, 3.02007}};
