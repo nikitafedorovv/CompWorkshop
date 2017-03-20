@@ -127,11 +127,13 @@ public class Task2 {
 //        gaussS.print(10,10);
 //        luS.print(10,10);
 
+        System.out.print("Gauss:");
         system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
                 .times(gaussS)
                 .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
                 .print(30,30);
 
+        System.out.print("LU:");
         system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
                 .times(luS)
                 .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
