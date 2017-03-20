@@ -1,9 +1,7 @@
 package nf;
 
 import Jama.Matrix;
-
-import java.util.Arrays;
-
+import java.util.Scanner;
 
 public class Task3 {
 
@@ -100,6 +98,7 @@ public class Task3 {
     }
 
     private static Matrix[] hermitAndPosHB(Matrix A, Matrix b, double eigenvaluesSum) {
+
         Matrix E = new Matrix(A.getRowDimension(), A.getColumnDimension());
         for(int i = 0; i < A.getRowDimension(); i++){
             E.set(i, i, 1);
@@ -169,20 +168,25 @@ public class Task3 {
                                     {0.33266, 3.17137, 0.54055, 6.58335},
                                     {0.16768, 0.54055, 4.92343, 6.36904}};
         Matrix x0 = Matrix.random(systemAsArray.length, 1);
-        int accuracy = 10;
+
+        System.out.print("Enter accuracy (integer): ");
+        int accuracy = (new Scanner(System.in)).nextInt();
 
         Matrix system = new Matrix(systemAsArray);
         Matrix A = system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2);
         Matrix b = system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1);
 
-        System.out.print("\n||||| DiagPredom matrix type solution ");
+        System.out.print("\n\n\nDiagPredom matrix type solution ");
         iterate(diagPredomHB(A, b), A, b, x0, accuracy);
-        System.out.print("\n||||| Hermit matrix type solution ");
-        iterate(hermitAndPosHB(A, b, eigenvaluesSumMethod1(A, accuracy)), A, b, x0, accuracy);
-        System.out.print("\n||||| Hermit matrix type solution ");
-        iterate(hermitAndPosHB(A, b, eigenvaluesSumMethod2(A, accuracy)), A, b, x0, accuracy);
-        System.out.print("\n||||| Seidel solution ");
-        iterateSeidel(A, b, x0, accuracy);
 
+        System.out.println("\n");
+        eigenvaluesSumMethod1(A, accuracy);
+
+//        System.out.print("\n\n\nHermit matrix type solution ");
+//        iterate(hermitAndPosHB(A, b, eigenvaluesSumMethod1(A, accuracy)), A, b, x0, accuracy);
+        System.out.print("\n\n\nHermit matrix type solution ");
+        iterate(hermitAndPosHB(A, b, eigenvaluesSumMethod2(A, accuracy)), A, b, x0, accuracy);
+        System.out.print("\n\n\nSeidel solution ");
+        iterateSeidel(A, b, x0, accuracy);
     }
 }
