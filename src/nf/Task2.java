@@ -5,7 +5,6 @@ import Jama.Matrix;
 public class Task2 {
 
     public static Matrix gaussSolve(Matrix system){
-        system = new Matrix(system.getArrayCopy());
         for(int k = 0; k < system.getRowDimension(); k++){
             for(int i = k; i < system.getRowDimension(); i++){
                 if (system.get(i, k) == 0) { //если ноль, то складываем с чем-нибудь из низа, не нулевым в этом месте
@@ -23,7 +22,6 @@ public class Task2 {
                 }
             }
             for(int j = k + 1; j < system.getRowDimension(); j++){
-
                 if (system.get(j, k) != 0) { //если ноль, то отнимать уже ничего и не надо
                     for(int l = 0; l < system.getColumnDimension(); l++){
                         system.getArray()[j][l] -= system.get(k,l);
@@ -48,138 +46,159 @@ public class Task2 {
         return answer;
     }
 
-    public static Matrix gaussModifMaxInRow(Matrix system){
-
-        system.print(10,10);
-
+    private static int maxElementInRow(Matrix m){
         double max = 0;
         int indexMax = 0;
-        for(int i = 0; i < system.getColumnDimension() - 1; i++){ //ищем максимальный элемент в первой строке
-            double current = Math.abs(system.get(0,i));
+        for(int i = 0; i < m.getColumnDimension() - 1; i++){ //ищем максимальный элемент в первой строке
+            double current = Math.abs(m.get(0,i));
             if (current > max){
                 indexMax = i;
                 max = current;
             }
         }
-        max = system.get(0,indexMax);
+        return indexMax;
+    }
+
+    private static int maxElementInColumn(Matrix m){
+        double max = 0;
+        int indexMax = 0;
+        for(int i = 0; i < m.getRowDimension(); i++){ //ищем максимальный элемент в первом столбце
+            double current = Math.abs(m.get(i,0));
+            if (current > max){
+                indexMax = i;
+                max = current;
+            }
+        }
+        return indexMax;
+    }
+
+    private static int[] maxElement(Matrix m){
+        int[] indexMax = new int[2];
+        double max = 0;
+        for(int i = 0; i < m.getRowDimension(); i++){
+            for(int j = 0; j < m.getColumnDimension() - 1; j++){
+                if (Math.abs(m.get(i,j)) > max){
+                    max = Math.abs(m.get(i,j));
+                    indexMax[0] = i;
+                    indexMax[1] = j;
+                }
+            }
+        }
+        return indexMax;
+    }
+
+    private static Matrix swapCols(Matrix m, int indexMax){
         if (indexMax > 0){ //меняем местами первый и с максимальным элементом столбцы
             double temp;
-            for(int i = 0; i < system.getColumnDimension() - 1; i++){
-                temp = system.get(i, 0);
-                system.set(i,0, system.get(i, indexMax));
-                system.set(i, indexMax, temp);
+            for(int i = 0; i < m.getColumnDimension() - 1; i++){
+                temp = m.get(i, 0);
+                m.set(i,0, m.get(i, indexMax));
+                m.set(i, indexMax, temp);
             }
         }
+        return m;
+    }
+
+    private static Matrix swapRows(Matrix m, int indexMax){
+        if (indexMax > 0){ //меняем местами первую и с максимальным элементом строки
+            double temp;
+            for(int i = 0; i < m.getColumnDimension(); i++){
+                temp = m.get(0, i);
+                m.set(0,i, m.get(indexMax, i));
+                m.set(indexMax, i, temp);
+            }
+        }
+        return m;
+    }
+
+    private static Matrix divideFirstRowByDouble(Matrix m, double max){
         if (max != 1) {
-            for (int i = 0; i < system.getColumnDimension(); i++) {  //делим первую строку на максимальный
-                system.set(0, i, system.get(0, i) / max);
+            for (int i = 0; i < m.getColumnDimension(); i++) {  //делим первую строку на максимальный
+                m.set(0, i, m.get(0, i) / max);
             }
         }
-        for(int i = 1; i < system.getRowDimension(); i++){ //делаем нули в первом столбце под единицей
-            double firstElement = system.get(i, 0);
-            for(int j = 0; j < system.getColumnDimension(); j++){
-                system.set(i, j,system.get(i, j) - system.get(0, j) * firstElement);
+        return m;
+    }
+
+    private static Matrix zerosInFirstColumn(Matrix m){
+        for(int i = 1; i < m.getRowDimension(); i++){ //делаем нули в первом столбце под единицей
+            double firstElement = m.get(i, 0);
+            for(int j = 0; j < m.getColumnDimension(); j++){
+                m.set(i, j,m.get(i, j) - m.get(0, j) * firstElement);
             }
         }
+        return m;
+    }
 
-        double[] answerAsArray = new double[system.getRowDimension()];
+    private static Matrix countAnswer(Matrix m, int indexMax){
+        double[] answerAsArray = new double[m.getRowDimension()];
 
-        if(system.getRowDimension() > 1){
-            Matrix x = gaussModifMaxInRow(system.getMatrix(1, system.getRowDimension() - 1, 1, system.getColumnDimension() - 1));
+        if(m.getRowDimension() > 1){
+            Matrix x = gaussModifMaxInRow(m.getMatrix(1, m.getRowDimension() - 1, 1, m.getColumnDimension() - 1));
 
             double sum = 0;
-            for(int i = 1; i < system.getColumnDimension() - 1; i++){
-                sum += system.get(0, i) * x.get(i - 1, 0);
+            for(int i = 1; i < m.getColumnDimension() - 1; i++){
+                sum += m.get(0, i) * x.get(i - 1, 0);
             }
-            double x0 = system.get(0, system.getColumnDimension() - 1) - sum;
+            double x0 = m.get(0, m.getColumnDimension() - 1) - sum; //посчитали новую координату решения
 
-            answerAsArray[0] = x.get(indexMax - 1,0);
-            for(int i = 1; i < indexMax; i++){
-                answerAsArray[i] = x.get(i - 1, 0);
+            if (indexMax != 0){
+                answerAsArray[0] = x.get(indexMax - 1,0);  //правильно заполняем ответ, с учетом того, что двигали столбцы
+                for(int i = 1; i < indexMax; i++){
+                    answerAsArray[i] = x.get(i - 1, 0);
+                }
+                answerAsArray[indexMax] = x0;
+                for(int i = indexMax + 1; i < m.getColumnDimension() - 1; i++){
+                    answerAsArray[i] = x.get(i - 1, 0);
+                }
+            } else { //не двигали столбцы
+                for(int i = 1; i < m.getColumnDimension() - 1; i++){
+                    answerAsArray[i] = x.get(i - 1, 0);
+                }
+                answerAsArray[0] = x0;
             }
-            answerAsArray[indexMax] = x0;
-            for(int i = indexMax + 1; i < system.getColumnDimension() - 1; i++){
-                answerAsArray[i] = x.get(i - 1, 0);
-            }
+
         } else {
-            answerAsArray[0] = system.get(0,1);
+            answerAsArray[0] = m.get(0,1);
         }
 
-        Matrix answer = new Matrix(1, system.getColumnDimension() - 1);
+        Matrix answer = new Matrix(1, m.getColumnDimension() - 1);
         answer.getArray()[0] = answerAsArray;
         answer = answer.transpose();
         return answer;
     }
 
+    private static Matrix countAnswer(Matrix m){
+        return countAnswer(m, 0);
+    }
+
+    public static Matrix gaussModifMaxInRow(Matrix system){
+        int indexMax = maxElementInRow(system);
+        double max = system.get(0,indexMax);
+        swapCols(system,indexMax);
+        divideFirstRowByDouble(system, max);
+        zerosInFirstColumn(system);
+        return countAnswer(system, indexMax);
+    }
+
     public static Matrix gaussModifMaxInColumn(Matrix system){
-
-        double max = 0;
-        int indexMax = 0;
-        for(int i = 0; i < system.getRowDimension(); i++){ //ищем максимальный элемент в первом столбце
-            double current = Math.abs(system.get(i,0));
-            if (current > max){
-                indexMax = i;
-                max = current;
-            }
-        }
-        max = system.get(indexMax,0);
-
-        System.out.println("max: "+max);
-        system.print(10,10);
-        System.out.println("меняем местами первую и с максимальным элементом строки");
-        if (indexMax > 0){ //меняем местами первую и с максимальным элементом строки
-            double temp;
-            for(int i = 0; i < system.getColumnDimension(); i++){
-                temp = system.get(0, i);
-                system.set(0,i, system.get(indexMax, i));
-                system.set(indexMax, i, temp);
-            }
-        }
-        system.print(10,10);
-        System.out.println("делим первую строку на максимальный");
-        if (max != 1) {
-            for (int i = 0; i < system.getColumnDimension(); i++){  //делим первую строку на максимальный
-                system.set(0, i, system.get(0, i) / max);
-            }
-        }
-        system.print(10,10);
-        System.out.println("делаем нули в первом столбце под единицей");
-        for(int i = 1; i < system.getRowDimension(); i++){ //делаем нули в первом столбце под единицей
-            double firstElement = system.get(i, 0);
-            for(int j = 0; j < system.getColumnDimension(); j++){
-                system.set(i, j,system.get(i, j) - system.get(0, j) * firstElement);
-            }
-        }
-        system.print(10,10);
-
-        double[] answerAsArray = new double[system.getRowDimension()];
-
-        if(system.getRowDimension() > 1){
-            Matrix x = gaussModifMaxInColumn(system.getMatrix(1, system.getRowDimension() - 1, 1, system.getColumnDimension() - 1));
-
-            double sum = 0;
-            for(int i = 1; i < system.getColumnDimension() - 1; i++){
-                sum += system.get(0, i) * x.get(i - 1, 0);
-            }
-
-            answerAsArray[0] = system.get(0, system.getColumnDimension() - 1) - sum;
-
-            for(int i = 1; i < system.getColumnDimension() - 1; i++){
-                answerAsArray[i] = x.get(i - 1, 0);
-            }
-        } else {
-            answerAsArray[0] = system.get(0,1);
-        }
-
-        Matrix answer = new Matrix(1, system.getColumnDimension() - 1);
-        answer.getArray()[0] = answerAsArray;
-        answer = answer.transpose();
-        return answer;
+        int indexMax = maxElementInColumn(system);
+        double max = system.get(indexMax,0);
+        swapRows(system,indexMax);
+        divideFirstRowByDouble(system, max);
+        zerosInFirstColumn(system);
+        return countAnswer(system);
     }
 
     public static Matrix gaussModifMax(Matrix system){
 
-        return gaussSolve(system);
+        int[] indexMax = maxElement(system);
+        double max = system.get(indexMax[0],indexMax[1]);
+        swapRows(system, indexMax[0]);
+        swapCols(system, indexMax[1]);
+        divideFirstRowByDouble(system, max);
+        zerosInFirstColumn(system);
+        return countAnswer(system, indexMax[1]);
     }
 
     public static Matrix[] lu(Matrix matrix){
@@ -224,7 +243,6 @@ public class Task2 {
         for(int i = 0; i < b.getRowDimension(); i++){
 
             double sum = 0;
-
             for(int j = 0; j < i; j++) {
                 sum += lu[0].get(i, j) * y[j];
             }
@@ -257,47 +275,61 @@ public class Task2 {
                                      {2,  3, 5, 5},
                                      {6,  3, 1, 4}};
 
+        double[][] eeAsArray = new double[systemAsArray.length][systemAsArray.length];
+
+        for(int i = 0; i < eeAsArray.length; i++){
+            eeAsArray[i][eeAsArray.length - i - 1] = 1;
+        }
+
+        Matrix ee = new Matrix(eeAsArray);
 
         Matrix system = new Matrix(systemAsArray);
 
-        int symb = 30;
+        int symb = 31;
 
-        Matrix gaussS = gaussSolve(system);
-        Matrix gaussMaxInRow = gaussModifMaxInRow(new Matrix(system.getArrayCopy()));
-        Matrix gaussMaxInColumn = gaussModifMaxInColumn(new Matrix(system.getArrayCopy()));
+        Matrix gaussS = ee.times(gaussSolve(new Matrix(system.getArrayCopy())));
+        Matrix gaussMaxInRow = ee.times(gaussModifMaxInRow(new Matrix(system.getArrayCopy())));
+        Matrix gaussMaxInColumn = ee.times(gaussModifMaxInColumn(new Matrix(system.getArrayCopy())));
+        Matrix gaussMax = ee.times(gaussModifMax(new Matrix(system.getArray())));
         Matrix[] lu = lu(system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2));
         Matrix luS = luSolve(lu, system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1));
 
 //        gaussS.print(10,10);
 //        luS.print(10,10);
 
-
-
         System.out.print("Gauss:");
-//        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
-//                .times(gaussS)
-//                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
-//                .print(symb,symb);
-        gaussS.print(symb,symb);
+        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
+                .times(gaussS)
+                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
+                .print(symb,symb);
+//        gaussS.print(symb,symb);
 
         System.out.print("Gauss modification - maximum in row:");
-//        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
-//                .times(gaussMaxInRow)
-//                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
-//                .print(symb,symb);
-        gaussMaxInRow.print(symb,symb);
+        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
+                .times(gaussMaxInRow)
+                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
+                .print(symb,symb);
+//        gaussMaxInRow.print(symb,symb);
 
         System.out.print("Gauss modification - maximum in column:");
-//        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
-//                .times(gaussMaxInColumn)
-//                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
-//                .print(symb,symb);
-        gaussMaxInColumn.print(symb,symb);
+        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
+                .times(gaussMaxInColumn)
+                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
+                .print(symb,symb);
+//        gaussMaxInColumn.print(symb,symb);
 
-//        System.out.print("LU:");
-//        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
-//                .times(luS)
-//                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
-//                .print(symb,symb);
+        System.out.print("Gauss modification - maximum in matrix:");
+        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
+                .times(gaussMax)
+                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
+                .print(symb,symb);
+//        gaussMax.print(symb,symb);
+
+        System.out.print("LU:");
+        system.getMatrix(0, system.getRowDimension() - 1, 0, system.getColumnDimension() - 2)
+                .times(luS)
+                .minus(system.getMatrix(0, system.getRowDimension() - 1, system.getColumnDimension() - 1, system.getColumnDimension() - 1))
+                .print(symb,symb);
+//        luS.print(symb,symb);
     }
 }
