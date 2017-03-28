@@ -167,7 +167,29 @@ public class Task2 {
     }
 
     private static Matrix countAnswer(Matrix m){
-        return countAnswer(m, 0);
+        double[] answerAsArray = new double[m.getRowDimension()];
+        if(m.getRowDimension() > 1){
+            Matrix x = gaussModifMaxInColumn(m.getMatrix(1, m.getRowDimension() - 1, 1, m.getColumnDimension() - 1));
+
+            double sum = 0;
+            for(int i = 1; i < m.getColumnDimension() - 1; i++){
+                sum += m.get(0, i) * x.get(i - 1, 0);
+            }
+            double x0 = m.get(0, m.getColumnDimension() - 1) - sum; //посчитали новую координату решения
+
+            for(int i = 1; i < m.getColumnDimension() - 1; i++){
+                answerAsArray[i] = x.get(i - 1, 0);
+            }
+            answerAsArray[0] = x0;
+
+        } else {
+            answerAsArray[0] = m.get(0,1);
+        }
+
+        Matrix answer = new Matrix(1, m.getColumnDimension() - 1);
+        answer.getArray()[0] = answerAsArray;
+        answer = answer.transpose();
+        return answer;
     }
 
     public static Matrix gaussModifMaxInRow(Matrix system){
