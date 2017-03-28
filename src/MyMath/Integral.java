@@ -2,7 +2,7 @@ package MyMath;
 
 public class Integral {
 
-    public double value(Function f, double a, double b, double eps){ //методом трапеций
+    public static double value(Function f, double a, double b, double eps){ //методом трапеций
         if(a > b){
             double c = a;
             a = b;
@@ -12,6 +12,7 @@ public class Integral {
         double oldValue = eps;
         long n = 1;
         while(Math.abs(newValue - oldValue) >= eps){
+            oldValue = newValue;
             double step = (b - a)/n;
             double point = a;
             double sum = 0;
