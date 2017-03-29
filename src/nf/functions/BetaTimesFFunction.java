@@ -1,8 +1,5 @@
 package nf.functions;
 
-/**
- * Created by nikitafedorov on 29/03/2017.
- */
 public class BetaTimesFFunction implements MyMath.Function {
     private int index;
     public double value(double y){
