@@ -4,9 +4,7 @@ public class AlphaTimesBetaFunction implements MyMath.Function {
     private int i;
     private int j;
     public double value(double y){
-        AlphaFunction alpha = new AlphaFunction(i);
-        BetaFunction beta = new BetaFunction(j);
-        return alpha.value(y) * beta.value(y);
+        return new AlphaFunction(j).value(y) * new BetaFunction(i).value(y);
     }
 
     public int getI() {
@@ -17,7 +15,7 @@ public class AlphaTimesBetaFunction implements MyMath.Function {
         return j;
     }
 
-    public AlphaTimesBetaFunction(int i, int j){
+    public AlphaTimesBetaFunction(int j, int i){
         this.i = i;
         this.j = j;
     }
