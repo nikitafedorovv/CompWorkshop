@@ -8,7 +8,7 @@ public class Task4 {
     private static int n1; //число слагаемых при разложении в ряд тейлора
     private static double a = 0;
     private static double b = 1;
-    private static double eps = 0.00001;
+    private static double eps = 0.0001;
     private static int n = 20; //по скольки точкам будем сравнивать методы 1 и 2
 
 
@@ -183,11 +183,9 @@ public class Task4 {
 
     private static Matrix[] method2(){
 
-        System.out.println("Решаем методом 2...");
-
         System.out.println();
 
-        int n = 3;
+        int n = 4;
 
         Matrix[] before;
         Matrix[] after = method2cycle(n);
