@@ -5,18 +5,14 @@ import MyMath.Factorial;
 
 public class Task4 {
 
-    private static int n1; //число слагаемых при разложении в ряд тейлора
+    private static int n1; //число слагаемых при разложении в ряд тейлора в первом методе
     private static double a = 0;
     private static double b = 1;
-    private static double eps = 0.0001;
+    private static double eps = 0.0001; //для второго метода
     private static int n = 20; //по скольки точкам будем сравнивать методы 1 и 2
 
+    private static double epsInt = 0.000000000001; //для интегралов (метод трапеции)
 
-//    private static int accuracy = 5;
-//    private static double eps = Math.pow(0.1, accuracy + 2); //по сути, для подсчёта интегралов (в первом)
-//    private static double eps1 = 0.00001; //для второго //5!
-
-    private static double eps1 = eps;
 
     private static double hFunction(double x, double y){
         return -1.0 / 3.0 * Math.exp( -x * y);
@@ -94,7 +90,6 @@ public class Task4 {
         double answer = fFunction(x);
         for(int j = 0; j < n; j++){
             answer += A.get(j,0) * hFunction(x, xj.get(j,0)) * u.get(j, 0);
-            //System.out.println("a = "+A.get(j,0)+", h = "+H.value(x, xj.get(j,0))+", u = "+u.get(j, 0));
         }
         return answer;
     }
@@ -103,12 +98,12 @@ public class Task4 {
 
         Matrix fi = new Matrix(n1, 1);
         for(int i = 0; i < n1; i++){
-            fi.set(i, 0, integralBetaTimesF(i, a, b, eps));
+            fi.set(i, 0, integralBetaTimesF(i, a, b, epsInt));
         }
         Matrix A = new Matrix(n1, n1);
         for(int i = 0; i < n1; i++){
             for(int j = 0; j < n1; j++){
-                A.set(i, j, integralAlphaTimesBeta(i, j, a, b, eps));
+                A.set(i, j, integralAlphaTimesBeta(i, j, a, b, epsInt));
             }
         }
         Matrix system = new Matrix(n1, n1);
@@ -194,23 +189,19 @@ public class Task4 {
             before = after;
             after = method2cycle(n);
 
-            System.out.println("n = "+ n +" after[0] = "+after[0].get(0,0));
-            System.out.println("n = "+ n +" after[1] = "+after[1].get(0,0));
-            System.out.println("n = "+ n +" after[2] = "+ after[2].get(0,0));
-
         } while (
-                        (Math.abs(before[0].get(0,0) - after[0].get(0,0)) >= eps1)
+                        (Math.abs(before[0].get(0,0) - after[0].get(0,0)) >= eps)
                                 ||
-                        (Math.abs(before[1].get(0,0) - after[1].get(0,0)) >= eps1)
+                        (Math.abs(before[1].get(0,0) - after[1].get(0,0)) >= eps)
                                 ||
-                        (Math.abs(before[2].get(0,0) - after[2].get(0,0)) >= eps1)
+                        (Math.abs(before[2].get(0,0) - after[2].get(0,0)) >= eps)
                 );
         System.out.println("В методе 2 (мех. кв.) остановка при n = " + n);
         return after;
     }
 
     public static void go(){
-        System.out.println("Решаем методом 1, 3 слагаемых в тейлоре...");
+        System.out.println("\nРешаем методом 1, 3 слагаемых в тейлоре...");
         n1 = 3;
         Matrix c3 = method1();
 
@@ -218,14 +209,21 @@ public class Task4 {
         n1 = 4;
         Matrix c4 = method1();
 
-        System.out.println("Решаем методом 2...");
+        System.out.println("Решаем методом 2 (eps = " + eps + ")...");
         Matrix[] method2 = method2();
 
         Matrix x = method2[3];
         Matrix A = method2[4];
         Matrix u = method2[5];
 
-        //double maxDifference = 0;
+        double maxDifferenceTaylor = 0;
+        double maxDifference = 0;
+        double differenceTaylor;
+        double difference;
+        System.out.println("\nТочка      Зам. ядра 3            Зам. ядра 4            Мех. кв");
+        System.out.println("__________________________________________________________________________");
+
+
         for(int i = 0; i <= n; i++){
             double currentX = (a * (n - i) + b * i) / n;
             n1 = 3;
@@ -233,17 +231,28 @@ public class Task4 {
             n1 = 4;
             double first4 = u1(currentX, c4);
             double second = u2(currentX, A, x, u);
-            //double difference = Math.abs(first3 - second);
-            System.out.println("Точка: " + currentX);
-            System.out.println("Значение решения первым методом (зам. ядра) в этой точке, в тейлоре три слагаемых: " + first3);
-            System.out.println("Значение решения первым методом (зам. ядра) в этой точке, в тейлоре четыре слагаемых: " + first4);
-            System.out.println("Значение решения вторым методом (мех. кв.) в этой точке: " + second);
-            //System.out.println("Разница: "+difference);
 
-//            if (difference > maxDifference) {
-//                maxDifference = difference;
-//            }
+            differenceTaylor = Math.abs(first3 - first4);
+            difference = Math.abs(first4 - second);
+
+            System.out.printf("%.3f      ", currentX);
+            System.out.printf("%.15f      ", first3);
+            System.out.printf("%.15f      ", first4);
+            System.out.printf("%.15f      \n", second);
+
+            if (differenceTaylor > maxDifferenceTaylor) {
+                maxDifferenceTaylor = differenceTaylor;
+            }
+
+            if (difference > maxDifference) {
+                maxDifference = difference;
+            }
         }
-        //System.out.println("maxDifference: " + maxDifference);
+        System.out.println("__________________________________________________________________________");
+        System.out.println("\nМаксимальная разница в этих точках между решениями первым методом " +
+                "(зам. ядра, разное количество слагаемых " +
+                "при разложении в ряд тейлора): " + maxDifferenceTaylor);
+        System.out.println("Максимальная разница в этих точках между решением первым методом " +
+                "(зам. ядра, 4 слагаемых) и вторым (мех. кв.): " + maxDifference);
     }
 }
