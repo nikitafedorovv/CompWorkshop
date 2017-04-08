@@ -9,10 +9,9 @@ public class Task4 {
     private static double a = 0;
     private static double b = 1;
     private static double eps = 0.0001; //для второго метода
-    private static int n = 20; //по скольки точкам будем сравнивать методы 1 и 2
+    private static int n = 100; //по скольки точкам будем смотреть погрешность
 
     private static double epsInt = 0.000000000001; //для интегралов (метод трапеции)
-
 
     private static double hFunction(double x, double y){
         return -1.0 / 3.0 * Math.exp( -x * y);
@@ -37,6 +36,52 @@ public class Task4 {
 
     public static double alphaTimesBetaFunction(double y, int i, int j){
         return alphaFunction(y, j) * betaFunction(y, i);
+    }
+
+    public static double hTimesU1Function(double x, double y, Matrix c){
+        return hFunction(x, y) * u1(y, c);
+    }
+
+    public static double hTimesU2Function(double x, double y, Matrix A, Matrix xj, Matrix u){
+        return hFunction(x, y) * u2(y, A, xj, u);
+    }
+
+    public static double inErrorByAmountU1(double x, Matrix c, double a, double b){
+        double integral = 0;
+        double oldValue = eps;
+        long n = 1;
+        while(Math.abs(integral - oldValue) >= eps){
+            oldValue = integral;
+            double step = (b - a) / n;
+            double point = a;
+            double sum = 0;
+            while(point < b){
+                sum += (hTimesU1Function(x, point, c) + hTimesU1Function(x, point + step, c)) * 0.5 * step;
+                point += step;
+            }
+            integral = sum;
+            n *= 2;
+        }
+        return u1(x, c) - integral - fFunction(x);
+    }
+
+    public static double inErrorByAmountU2(double x, Matrix A, Matrix xj, Matrix u, double a, double b){
+        double integral = 0;
+        double oldValue = eps;
+        long n = 1;
+        while(Math.abs(integral - oldValue) >= eps){
+            oldValue = integral;
+            double step = (b - a) / n;
+            double point = a;
+            double sum = 0;
+            while(point < b){
+                sum += (hTimesU2Function(x, point, A, xj, u) + hTimesU2Function(x, point + step, A, xj, u)) * 0.5 * step;
+                point += step;
+            }
+            integral = sum;
+            n *= 2;
+        }
+        return u2(x, A, xj, u) - integral - fFunction(x);
     }
 
     public static double integralBetaTimesF(int i, double a, double b, double eps){
@@ -216,43 +261,77 @@ public class Task4 {
         Matrix A = method2[4];
         Matrix u = method2[5];
 
-        double maxDifferenceTaylor = 0;
-        double maxDifference = 0;
-        double differenceTaylor;
-        double difference;
-        System.out.println("\nТочка      Зам. ядра 3            Зам. ядра 4            Мех. кв");
-        System.out.println("__________________________________________________________________________");
+        double maxInError13 = 0;
+        double maxInError14 = 0;
+        double maxInError2 = 0;
+        double inError13;
+        double inError14;
+        double inError2;
 
+//        double maxDifferenceTaylor = 0;
+//        double maxDifference = 0;
+//        double differenceTaylor;
+//        double difference;
+//        System.out.println("\nТочка      Зам. ядра 3            Зам. ядра 4            Мех. кв");
+//        System.out.println("__________________________________________________________________________");
 
         for(int i = 0; i <= n; i++){
             double currentX = (a * (n - i) + b * i) / n;
+
             n1 = 3;
-            double first3 = u1(currentX, c3);
+            inError13 = inErrorByAmountU1(currentX, c3, a, b);
             n1 = 4;
-            double first4 = u1(currentX, c4);
-            double second = u2(currentX, A, x, u);
+            inError14 = inErrorByAmountU1(currentX, c4, a, b);
 
-            differenceTaylor = Math.abs(first3 - first4);
-            difference = Math.abs(first4 - second);
+            inError2 = inErrorByAmountU2(currentX, A, x, u, a, b);
 
-            System.out.printf("%.3f      ", currentX);
-            System.out.printf("%.15f      ", first3);
-            System.out.printf("%.15f      ", first4);
-            System.out.printf("%.15f      \n", second);
+            maxInError13 += Math.abs(inError13);
+            maxInError14 += Math.abs(inError14);
+            maxInError2 += Math.abs(inError2);
 
-            if (differenceTaylor > maxDifferenceTaylor) {
-                maxDifferenceTaylor = differenceTaylor;
-            }
+//            if (inError13 > maxInError13){
+//                maxInError13 = inError13;
+//            }
+//
+//            if (inError14 > maxInError14){
+//                maxInError14 = inError14;
+//            }
+//
+//            if (inError2 > maxInError2){
+//                maxInError2 = inError2;
+//            }
 
-            if (difference > maxDifference) {
-                maxDifference = difference;
-            }
+//            n1 = 3;
+//            double first3 = u1(currentX, c3);
+//            n1 = 4;
+//            double first4 = u1(currentX, c4);
+//            double second = u2(currentX, A, x, u);
+//
+//            differenceTaylor = Math.abs(first3 - first4);
+//            difference = Math.abs(first4 - second);
+//
+//            System.out.printf("%.3f      ", currentX);
+//            System.out.printf("%.15f      ", first3);
+//            System.out.printf("%.15f      ", first4);
+//            System.out.printf("%.15f      \n", second);
+//
+//            if (differenceTaylor > maxDifferenceTaylor) {
+//                maxDifferenceTaylor = differenceTaylor;
+//            }
+//
+//            if (difference > maxDifference) {
+//                maxDifference = difference;
+//            }
         }
-        System.out.println("__________________________________________________________________________");
-        System.out.println("\nМаксимальная разница в этих точках между решениями первым методом " +
-                "(зам. ядра, разное количество слагаемых " +
-                "при разложении в ряд тейлора): " + maxDifferenceTaylor);
-        System.out.println("Максимальная разница в этих точках между решением первым методом " +
-                "(зам. ядра, 4 слагаемых) и вторым (мех. кв.): " + maxDifference);
+//        System.out.println("__________________________________________________________________________");
+//        System.out.println("\nМаксимальная разница в этих точках между решениями первым методом " +
+//                "(зам. ядра, разное количество слагаемых " +
+//                "при разложении в ряд тейлора): " + maxDifferenceTaylor);
+//        System.out.println("Максимальная разница в этих точках между решением первым методом " +
+//                "(зам. ядра, 4 слагаемых) и вторым (мех. кв.): " + maxDifference);
+
+        System.out.println("Средняя погрешность (в "+n+" точках, среднее арифметическое) первого метода (зам. ядра), три слагаемых в тейлоре: " + maxInError13/n);
+        System.out.println("Средняя погрешность (в "+n+" точках, среднее арифметическое) первого метода (зам. ядра), четыре слагаемых в тейлоре: " + maxInError14/n);
+        System.out.println("Средняя погрешность (в "+n+" точках, среднее арифметическое) второго метода (мех. кв.): " + maxInError2/n);
     }
 }
