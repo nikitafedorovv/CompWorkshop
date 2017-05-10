@@ -3,390 +3,257 @@ package nf;
 import java.util.Scanner;
 
 public class Task7 {
-    private static float alpha = 3.6f;
-    private static double[][] c = new double[100][1];
-    private static int[][] per = new int[100][1];
-    private final static double pi = Math.PI;
 
-    // полином Якоби:
-    // заполняем согласно формулам:
-    private static double P(int n, double x) {
-        if (n == 0)
-            return 1;
-        else if (n == 1)
-            return 2 * x;
-        else
-            return ((n + 1) * (2 * n + 1) * x * P(n - 1, x) - (n + 1) * n * P(n - 2, x)) / ((n + 2) * n);
+    private static void swap(double[][] A, int i, int j, int k, int p){
+        double c = A[i][j];
+        A[i][j] = A[k][p];
+        A[k][p] = c;
     }
 
-    // первая производная полинома Якоби
-    private static double derP1(int n, double x) {
-        if (n == 0)
-            return 0;
-        else if (n == 1)
-            return 2;
-        else
-            return ((n + 1) * (2 * n + 1)) / ((n + 2) * n) * (P(n - 1, x) + x * derP1(n - 1, x)) - (n + 1) / (n + 2) * derP1(n - 2, x);
+    //решение
+    private static double F(double x, int alpha) {
+        return 1.0/(x*x+alpha)-1.0/(alpha+1);
     }
-
-    // вторая производная полинома Якоби
-    private static double derP2(int n, double x) {
-        if (n == 0)
-            return 0;
-        else if (n == 1)
-            return 0;
-        else
-            return ((n + 1) * (2 * n + 1)) / ((n + 2) * n) * (2 * derP1(n - 1, x) + x * derP2(n - 1, x)) - (n + 1) / (n + 2) * derP2(n - 2, x);
-    }
-
-    //
-    private static double q(double x) {
-        return -(x * x + 3.6);
-    }
-
-    private static double r(double x) {
-        return -2 * x;
-    }
-
-    // f
-    private static double f(double x) {
-        return 2 * (3 * x * x - 3.6) / Math.pow((x * x + 3.6), 3) + 2 * x / 4.6;
-    }
-
-    // точное решение
-    private static double sol(double x) {
-        return 1.0 / (x * x + 3.6) - 1.0 / 4.6;
-    }
-
-    // L(Wi)
-    private static double L(int n, double x) {
-        return -2 * P(n - 1, x) - 4 * x * derP1(n - 1, x) + (1 - x * x) * derP2(n - 1, x) + q(x) * (-2 * x * P(n - 1, x) + (1 - x * x) * derP1(n - 1, x)) + r(x) * (1 - x * x) * P(n - 1, x);
-    }
-
-    // координатная сетка
-    private static double w(int n, double x) {
-        return (1 - x * x) * P(n - 1, x);
-    }
-
-    /*
-    Следующие 3 метода из предыдущей задачи, для решения системы линейных уравнений
-    */
-    private static int MaxTabX(double a[][], int n, int x) {
-        int maxx = x, maxy = x;
-        for (int i = x; i < n; i++)
-            for (int j = x; j < n; j++)
-            {
-                if (a[i][j] > a[maxx][maxy])
-                {
-                    maxx = i;
-                    maxy = j;
-                }
-            }
-        return maxx;
-    }
-
-    private static int MaxTabY(double a[][], int n, int x) {
-        int maxx = x, maxy = x;
-        for (int i = x; i < n; i++)
-            for (int j = x; j < n; j++) {
-                if (a[i][j] > a[maxx][maxy]) {
-                    maxx = i;
-                    maxy = j;
-                }
-            }
-        return maxy;
-    }
-
-    private static void mainElTab(double a[][], double b[][], int n) {
-        for (int i = 0; i < 100; i++)
-            per[i][0] = i;
-        boolean t = false, t1 = true;
-        for (int i = 0; i < n; i++) {
-            int b1 = MaxTabX(a, n, i);
-            int b2 = MaxTabY(a, n, i);
-            for (int j = i; j < n; j++) {
-                double y = a[b1][j];
-                a[b1][j] = a[i][j];
-                a[i][j] = y;
-            }
-            double y = b[b1][0];
-            b[b1][0] = b[i][0];
-            b[i][0] = y;
-            for (int j = 0; j < n; j++) {
-                double y0 = a[j][b2];
-                a[j][b2] = a[j][i];
-                a[j][i] = y0;
-            }
-            int y1 = per[i][0];
-            per[i][0] = per[b2][0];
-            per[b2][0] = y1;
-            if (a[i][i] != 0) {
-                double q = 1.0 / a[i][i];
-                for (int j = i; j < n; j++)
-                    a[i][j] = a[i][j] * q;
-                b[i][0] = b[i][0] * q;
-                for (int i1 = i + 1; i1 < n; i1++) {
-                    double p = a[i1][i];
-                    for (int j = i; j < n; j++) {
-                        a[i1][j] = a[i1][j] - a[i][j] * p;
-                    }
-                    b[i1][0] = b[i1][0] - b[i][0] * p;
-                }
-            }
+    //полином Якоби считаем
+    private static double P(double x, int i, int k) {
+        if (k==0) {
+            if (i==0)
+                return 1;
+            if (i == 1)
+                return 2*x;
+            else
+                return ((i+1)*(2*i+1)*P(x,i-1,k)*x-(i+1)*i*P(x,i-2,k))/(double)(i+2)/(double)(i);
         }
-        if (a[n - 1][n - 1] == 0 && b[n - 1][0] != 0) {
-            t1 = false;
-        } else if (a[n - 1][n - 1] == 0 && b[n - 1][0] == 0) {
-            c[per[n - 1][0]][0] = 1.0;
-            t = true;
-            t1 = true;
-        } else {
-            c[per[n - 1][0]][0] = b[n - 1][0];
-            t1 = true;
-            t = false;
-        } for (int i = n - 2; i >= 0; i--) {
-            if (a[i][i] != 0) {
-                c[per[i][0]][0] = b[i][0];
-                for (int j = i + 1; j < n; j++)
-                    c[per[i][0]][0] -= a[i][j] * c[per[j][0]][0];
-            } else {
-                double a1 = b[i][0];
-                for (int j = i + 1; j < n; j++)
-                    a1 -= a[i][j] * c[per[j][0]][0];
-                if (a1 == 0) {
-                    c[per[i][0]][0] = 1.0;
-                    t = true;
-                    t1 = true;
-                } else {
-                    t1 = false;
-                }
-            }
+
+        if (k==1) {
+            if (i==0)
+                return 0;
+            if (i==1)
+                return 2;
+            else
+                return ((i+1)*(2*i+1)*(P(x,i-1,0)+x*P(x,i-1,1))-(i+1)*i*P(x,i-2,1))/(i+2)/i;
         }
-	/*cout << "per: ";
-	for (int i = 0; i < n; i++)
-	cout << per[i][0] + 1 << ' ';
-	cout << endl;*/
+
+        else { //k=0/1/2
+            if (i==0)
+                return 0;
+            if (i==1)
+                return 0;
+            else
+                return ((i+1)*(2*i+1)*(2*P(x,i-1,1)+x*P(x,i-1,2))-(i+1)*i*P(x,i-2,2))/(i+2)/i;
+        }
     }
 
+    //сетка
+    private static double w( double x, int i, int k) { //функциональная сетка, k-порядок производной
+        if (k==0)
+            return (1-x*x)*P(x,i,k);
+        if (k==1)
+            return -2*x*P(x,i,0)+(1-x*x)*P(x,i,1);
+        else
+            return -2*P(x,i,0)-2*x*P(x,i,1)-2*x*P(x,i,1)+(1-x*x)*P(x,i,2);
+    }
 
-    // 1 способ: Метод коллокации
-    private static void collocation(int n)
+    //Для решения системы линейных уравнений
+    private static int find_max_stol(double[][] A,int n,int k)
     {
-        System.out.println("Решение методом коллокации:");
-        // инициализация
-        double[][] A = new double[100][100];
-        double[][] b = new double[100][1];
-
-        for (int i = 0; i < 100; i++)
-            for (int j = 0; j < 100; j++)
-                A[i][j] = 0;
-        for (int i = 0; i < 100; i++)
-            b[i][0] = 0;
-        // считаем в точке == КОРЕНЬ МН-НА ЧЕБЫШЕВА
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                A[i][j] = L(j + 1, Math.cos(pi * (2.0 * (i + 1) - 1) / (2 * n)));
-
-        for (int i = 0; i < n; i++)
-            b[i][0] = f(Math.cos(pi * (2.0 * (i + 1) - 1) / (2 * n)));
-
-	/*for (int i = 0; i < n; i++)
-	{
-	for (int j = 0; j < n; j++)
-	cout << A[i][j] << ' ';
-	cout << endl;
-	}
-	for (int i = 0; i < n; i++)
-	cout << b[i][0] << endl;*/
-
-        mainElTab(A, b, n);
-
-	/*for (int i = 0; i < n; i++)
-	cout << "c[" << i + 1 << "] = " << setprecision(15) << c[i][0] << endl;*/
-
-        double a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, -0.5);
-        System.out.println("Приближенное значение в (.) (-0.5): " + a);
-        System.out.println("Точное значение в (.) (-0.5): " + sol(-0.5));
-        System.out.println("Погрешность в (.) (-0.5): " + Math.abs(a - sol(-0.5)));
-
-        a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, 0.0);
-        System.out.println("Приближенное значение в (.) (0): " + a);
-        System.out.println("Точное значение в (.) (0): " + sol(0.0));
-        System.out.println("Погрешность в (.) (0): " + Math.abs(a - sol(0)));
-        a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, 0.5);
-        System.out.println("Приближенное значение в (.) (0.5): " + a);
-        System.out.println("Точное значение в (.) (0.5): " + sol(0.5));
-        System.out.println("Погрешность в (.) (0.5): " + Math.abs(a - sol(0.5)));
+        int max_st=k;
+        double max=Math.abs(A[k][k]);
+        for (int i=k+1;i<n;i++)
+            if (max<Math.abs(A[i][k]))
+            {
+                max_st=i;
+                max=Math.abs(A[i][k]);
+            }
+        //cout <<max_st<<endl;
+        return max_st;
     }
 
-    //считаем интеграл (метод Симпсона)
-    private static double integration(int i1, int j1, boolean f1) {
-        double h = 2.0 / 200;
-        double a = 0.0;
-        if (f1) {
-            for (int i = 0; i <= 200; i++) {
-                if (i == 0 || i == 200)
-                    a += w(i1, i * h - 1) * f(i * h - 1);
-                else if (i % 2 == 1)
-                    a += 4 * w(i1, i * h - 1) * f(i * h - 1);
-                else if (i % 2 == 0)
-                    a += 2 * w(i1, i * h - 1) * f(i * h - 1);
+    private static void main_stol(double A[][], int n, double x[])
+    {
+        for (int k=0;k<n;k++)
+        {
+            int max_st=find_max_stol(A,n,k);
+            for (int j=0;j<=n;j++)
+                swap(A,k,j,max_st,j);
+
+            if (A[k][k]!=0)
+            {
+                double mult = A[k][k];
+                for (int j=k;j<=n;j++)
+                    A[k][j]=A[k][j]/mult;
             }
-            a *= h / 3;
-        } else {
-            for (int i = 0; i <= 200; i++) {
-                if (i == 0 || i == 200)
-                    a += w(i1, i * h - 1) * L(j1, i * h - 1);
-                else if (i % 2 == 1)
-                    a += 4 * w(i1, i * h - 1) * L(j1, i * h - 1);
-                else if (i % 2 == 0)
-                    a += 2 * w(i1, i * h - 1) * L(j1, i * h - 1);
+
+            for (int i=k+1;i<n;i++)
+            {
+                double mult = A[i][k];
+                for (int j=k;j<=n;j++)
+                    A[i][j]=A[i][j]-A[k][j]*mult;
             }
-            a *= h / 3;
+
+		/*for (int i=0;i<n;i++)
+		{
+		for (int j=0;j<=n;j++)
+		cout<< A[i][j]<<' ';
+		cout <<endl<<endl;
+		}*/
         }
-        return a;
-    }
 
-    //определитель матрицы
-    private static double determinant(double mas[][], int n) {
-        if (n == 2) {
-            return mas[0][0] * mas[1][1] - mas[0][1] * mas[1][0];
-        } else {
-            double sum = 0;
-            for (int j = 0; j < n; j++) {
-                double mas1[][] = new double[100][100];
-                int i2 = 0, j2 = 0;
-                for (int i1 = 1; i1 < n; i1++) {
-                    for (int j1 = 0; j1 < n; j1++)
-                        if (j1 != j) {
-                            mas1[i2][j2] = mas[i1][j1];
-                            j2++;
-                        }
-                    i2++;
-                    j2 = 0;
-                }
-                if (j % 2 == 0)
-                    sum += mas[0][j] * determinant(mas1, n - 1);
-                else
-                    sum -= mas[0][j] * determinant(mas1, n - 1);
-            }
-            return sum;
+        for (int i=n-1;i>=0;i--)
+        {
+            double tmp=0;
+            for (int j=i+1;j<n;j++)
+                tmp+=A[i][j]*x[j];
+            x[i]=A[i][n]-tmp;
         }
     }
 
-    private static void Gal(int n) {
-        System.out.println("Решение методов Галеркина:");
-        //инициализация
-        double[][] A = new double[100][100];
-        double[][] b = new double[100][1];
-        for (int i = 0; i < 100; i++)
-            c[i][0] = 0;
-        for (int i = 0; i < 100; i++)
-            for (int j = 0; j < 100; j++)
-                A[i][j] = 0;
-//        for (int i = 0; i < 100; i++)
-//            b[i][0];  //!!!!!!!!!!??????!!!!!!!!!!!!???!!!!!!!!!!!!!!!!!!!!!!????!!!!!!!!!!!!!!!?????!!!!!!!!!!!!!!!!!
 
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                A[i][j] = integration(i + 1, j + 1, false);
-        for (int i = 0; i < n; i++)
-            b[i][0] = integration(i + 1, 0, true);
-        double z = determinant(A, n);
-        if (z == 0.0) {
-            System.out.println("Нет решений");
-            return;
+    private static double L(int i, int j, double x[],double p[], double q[],double r[])
+    {
+        return p[i]*w(x[i],j,2)+q[i]*w(x[i],j,1)+r[i]*w(x[i],j,0);
+    }
+
+
+    //наше уравнение, которое нам дано
+    private static double LL(int i, double x,int alpha)
+    {
+        return 1*w(x,i,2)-(x*x+alpha)*w(x,i,1)-2*x*w(x,i,0);
+    }
+
+    //вычисление интегралов для метода Галеркина
+    private static double MyFunction(double x, int i, int j,int alpha, int who)
+    {
+        if (who==1)
+            return w(x,j,0)*LL(i,x,alpha);
+        else
+            return (2*(3*x*x-alpha)/(x*x+alpha)/(x*x+alpha)/(x*x+alpha)+2*x/(alpha+1))*w(x,j,0);
+    }
+
+    //метод Симпсона для решения интеграла
+    private static double SimpsonIntegration(int n, int i,int j, int alpha,int who) //для поиска коэффициентов матриц
+    {
+        int a=-1;
+        int b=1;
+        n=100;
+        double h = ((double)b - (double)a) / (double)n/2;
+        double IntegSum = MyFunction(a,i,j,alpha,who)+MyFunction(b,i,j,alpha,who);
+        for (int k = 2; k<=2*n-2; k+=2 )
+            IntegSum+=2*MyFunction(a+k*h,i,j,alpha,who);
+        for (int k = 1; k<=2*n-1; k+=2 )
+            IntegSum+=4*MyFunction(a+k*h,i,j,alpha,who);
+        IntegSum*=h/3;
+        return IntegSum;
+    }
+
+
+    private static void Galyorkin_method(int n, int alpha,double y[]) {
+        double A[][]=new double[n][];
+        for (int i=0;i<n;i++)
+            A[i]=new double[n+1];
+
+        for (int j=0;j<n;j++)
+            for (int i=0;i<n;i++)
+                A[j][i]=SimpsonIntegration(n,i,j,alpha,1);
+
+        for (int i=0;i<n;i++)
+            A[i][n]=SimpsonIntegration(n,i,i,alpha,2);
+
+        double c[] = new double[n];
+        main_stol(A,n,c);
+
+        double result[]=new double[3];
+        System.out.println("Метод Галеркина: ");
+        for (int i=0;i<3;i++)
+        {
+            double sum=0;
+            for (int j=0;j<n;j++)
+                sum+=c[j]*w(-0.5+0.5*i,j,0);
+            System.out.println("y[" + (-0.5+0.5*i) + "] = " + sum);
+            result[i]=y[i]-sum;
         }
-        //решаем
-        mainElTab(A, b, n);
-	/*double a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * (1 - 0.25) * P(i, -0.5);
-	double y = abs(a - sol(-0.5));
-	a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * P(i, 0.0);
-	if (abs(a - sol(0.0)) > y)
-	y = abs(a - sol(0.0));
-	a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * (1 - 0.25) * P(i, 0.5);
-	if (abs(a - sol(0.5)) > y)
-	y = abs(a - sol(0.5));
-	while (y > e)
-	{
-	n++;
-	for (int i = 0; i < 100; i++)
-	c[i][0] = 0;
-	for (int i = 0; i < 100; i++)
-	for (int j = 0; j < 100; j++)
-	A[i][j] = 0;
-	for (int i = 0; i < 100; i++)
-	b[i][0];
-	for (int i = 0; i < n; i++)
-	for (int j = 0; j < n; j++)
-	A[i][j] = integration(i + 1, j + 1, false);
-	for (int i = 0; i < n; i++)
-	b[i][0] = integration(i + 1, 0, true);
-	double z = determinant(A, n);
-	if (z == 0.0)
-	{
-	cout << "can't solve by this method" << endl;
-	return;
-	}
-	mainElTab(A, b, n);
-	double a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * (1 - 0.25) * P(i, -0.5);
-	double y = abs(a - sol(-0.5));
-	a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * P(i, 0.0);
-	if (abs(a - sol(0.0)) > y)
-	y = abs(a - sol(0.0));
-	a = 0.0;
-	for (int i = 0; i < n; i++)
-	a += c[i][0] * (1 - 0.25) * P(i, 0.5);
-	if (abs(a - sol(0.5)) > y)
-	y = abs(a - sol(0.5));
-	}*/
-        double a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, -0.5);
-        System.out.println("Приближенное значение в (.) (-0.5): " + a);
-        System.out.println("Точное значение в (.) (-0.5): " + sol(-0.5));
-        System.out.println("Погрешность в (.) (-0.5): " + Math.abs(a - sol(-0.5)));
-        a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, 0.0);
-        System.out.println("Приближенное значение в (.) (0): " + a);
-        System.out.println("Точное значение в (.) (0): " + sol(0.0));
-        System.out.println("Погрешность в (.) (0): " + Math.abs(a - sol(0)));
-        a = 0.0;
-        for (int i = 0; i < n; i++)
-            a += c[i][0] * w(i + 1, 0.5);
-        System.out.println("Приближенное значение в (.) (0.5): " + a);
-        System.out.println("Точное значение в (.) (0.5): " + sol(0.5));
-        System.out.println("Погрешность в (.) (0.5): " + Math.abs(a - sol(0.5)));
+
+        System.out.println("Погрешность:");
+        for (int i=0;i<3;i++)
+            System.out.println(result[i] + " ");
     }
 
     public static void go() {
-        System.out.println("Методы решения ОДУ в аналитическом виде:");
+        System.out.println("Методы решения ОДУ в аналитическом виде");
+        System.out.println("Введите n");
         int n;
-        double e;
-        System.out.println("Кол-во функций: ");
         Scanner sc = new Scanner(System.in);
         n = sc.nextInt();
-        collocation(n);
-        //cout << "enter the accuracy: "; cin >> e;
-        Gal(n);
-        //cout << setprecision(15) << integration(1, 1, true) << endl;
-        //cout << w(1, -0.98) * f(-0.98) * 4 << endl;
+        System.out.println("[a, b] = ["+(-1)+", "+1+"]");
+
+        int a=-1;
+        int b=1;
+        int alpha=4;
+
+        double  x[] = new double[n];
+        double pi=3.141592653589793;
+        // густая сетка узлов (корни многочлена Чебышева 1 порядка)
+        for (int i=0;i<n;i++)
+            x[i]=Math.cos((2*i+1)*pi/2.0/(double)(n));
+
+        double p[]=new double[n];
+        for (int i=0;i<n;i++) p[i]=1;
+
+        double f[]=new double[n];
+        for (int i=0;i<n;i++)
+            f[i]=2*(3*x[i]*x[i]-alpha)/(x[i]*x[i]+alpha)/(x[i]*x[i]+alpha)/(x[i]*x[i]+alpha)+2*x[i]/(alpha+1);
+
+        double r[]=new double[n];
+        for (int i=0;i<n;i++)
+            r[i]=-2*x[i];
+
+        double q[]=new double[n];
+        for (int i=0;i<n;i++)
+            q[i]=-(x[i]*x[i]+alpha);
+
+        double A[][]=new double[n][];
+        for (int i=0;i<n;i++)
+            A[i]=new double[n+1];
+
+        //заполняем матрицу А и f, и решаем методом главного элемента по столбцу (таким образом решение - с(i)
+	    double c[]=new double[n];
+        for (int i=0;i<n;i++)
+            for (int j=0;j<n;j++)
+                A[i][j]=L(i,j,x,p,q,r);
+
+        for (int i=0;i<n;i++)
+            A[i][n]=f[i];
+
+        main_stol(A,n,c);
+
+
+	    double y[]=new double[3];
+
+        System.out.println("Точное решение:");
+        for (int i=0;i<3;i++)
+        {
+            y[i]=F(-0.5+0.5*i,alpha);
+            System.out.println("y[" + (-0.5+0.5*i) + "] = "+y[i]);
+        }
+
+
+        System.out.println("Метод коллокаций: ");
+	    double result[]=new double[3];
+        for (int i=0;i<3;i++)
+        {
+            double sum=0;
+            for (int j=0;j<n;j++)
+                sum+=c[j]*w(-0.5+0.5*i,j,0);
+            System.out.println("y[" + (-0.5+0.5*i) + "] = "+sum);
+            result[i]=y[i]-sum;
+        }
+
+        System.out.println("Погрешность:");
+        for (int i=0;i<3;i++)
+            System.out.println(result[i]+" ");
+
+        //метод Галеркина
+        Galyorkin_method(n,alpha,y);
     }
+
 }
