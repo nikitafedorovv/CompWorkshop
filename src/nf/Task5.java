@@ -15,6 +15,8 @@ public class Task5 {
 
     private static int n = 100;
 
+    private static double h = (b - a) / n; //шаг
+
     private static double p(double x) {
         return - (x * x + alpha);
     }
@@ -30,16 +32,21 @@ public class Task5 {
 
     // Метод прогонки с основной сеткой
     private static void basicGrid(){
-        double h = (b - a) / n; //шаг
-        double[] ai = new double[n + 2]; //коэффициенты для системы уравнений - трехдиагональной матрицы
-        double[] bi = new double[n + 2]; //коэффициенты для трехдиагональной матрицы
-        double[] ci = new double[n + 2]; //коэффициенты для трехдиагональной матрицы
-        double[] mi = new double[n + 2]; //прогоночные коэффициенты
-        double[] ki = new double[n + 2]; //прогоночные коэффициенты
-        double[] y = new double[n + 2];  //приближенные значения решения
+        System.out.println("_____________________________________________________________________________\n");
+        System.out.println("Основная сетка:");
+        double[] ai = new double[n]; //коэффициенты для системы уравнений - трехдиагональной матрицы
+        double[] bi = new double[n]; //коэффициенты для трехдиагональной матрицы
+        double[] ci = new double[n]; //коэффициенты для трехдиагональной матрицы
+        double[] mi = new double[n]; //прогоночные коэффициенты
+        double[] ki = new double[n]; //прогоночные коэффициенты
+        double[] y = new double[n + 1];  //приближенные значения решения
         // коэффициенты для 2х уравнений из краевых условий
-        double p1 = a1 / (a1 - a0 * h), p2 = b1 / (b0 * h + b1), d1 = -A * h / (a1 - a0 * h), d2 = B * h / (b0 * h + b1);
-        // находим коэффициенты для системы уравнений
+        double
+                p1 = a1 / (a1 - a0 * h),
+                p2 = b1 / (b0 * h + b1),
+                d1 = -A * h / (a1 - a0 * h),
+                d2 = B * h / (b0 * h + b1);
+        // находим коэффициенты для остальных уравнений системы
         for (int i = 1; i < n; i++) {
             ai[i] = 1 - h * p(a + i * h) / 2;
             bi[i] = 1 + h * p(a + i * h) / 2;
@@ -61,21 +68,19 @@ public class Task5 {
             y[i] = mi[i] * y[i + 1] + ki[i];
 
         //выводим значения решения и точного решения в узлах
-        System.out.println("точноеЗначение приближенноеЗначение");
+        System.out.println("Точное значение | Приближенное значение");
         for (int i = 0; i < n + 1; i++)
-            System.out.println(solution(a + i * h) + " " + y[i]);
+            System.out.printf("  %.10f  |  %.10f \n", solution(a + i * h), y[i]);
 
-        //для поиска максимальной погрешности
+        //ищем погрешность — максимум модулей разности
         double maxabs = Math.abs(solution(a) - y[0]), max = solution(a) - y[0];
-
-        //ищем максимальную погрешность
         for (int i = 1; i < n + 1; i++)
             if (Math.abs(solution(a + i * h) - y[i]) > maxabs) {
                 maxabs = Math.abs(solution(a + i * h) - y[i]);
                 max = solution(a + i * h) - y[i];
             }
 
-        System.out.println("Погрешность: " + max);
+        System.out.println("\nПогрешность: " + max);
 
 //        //ищем среднюю погрешность
 //        double sum = 0;
@@ -87,19 +92,22 @@ public class Task5 {
 
     // метод прогонки с использованием расширенной сетки (сдвинутой)
     private static void extendedGrid() {
-        System.out.println("\n\n_____________________________________________________________________________\n");
-        System.out.println("Расширенная сетка:");
-        //шаг
-        double h = (b - a) / n;
-        double[] ai = new double[n + 2]; //коэффициенты для системы уравнений - трехдиагональной матрицы
-        double[] bi = new double[n + 2]; //коэффициенты для трехдиагональной матрицы
-        double[] ci = new double[n + 2]; //коэффициенты для трехдиагональной матрицы
-        double[] mi = new double[n + 2]; //прогоночные коэффициенты
-        double[] ki = new double[n + 2]; //прогоночные коэффициенты
+        System.out.println("\n_____________________________________________________________________________\n");
+        System.out.println("Сдвинутая сетка:");
+
+        double[] ai = new double[n + 1]; //коэффициенты для системы уравнений - трехдиагональной матрицы
+        double[] bi = new double[n + 1]; //коэффициенты для трехдиагональной матрицы
+        double[] ci = new double[n + 1]; //коэффициенты для трехдиагональной матрицы
+        double[] mi = new double[n + 1]; //прогоночные коэффициенты
+        double[] ki = new double[n + 1]; //прогоночные коэффициенты
         double[] y = new double[n + 2];  //приближенные значения решения
         //коэффициенты для уравнений, которые получаются из граничных условий
-        double p1 = (2 * a1 + a0 * h) / (2 * a1 - a0 * h), p2 = (2 * b1 - b0 * h) / (b0 * h + 2 * b1), d1 = -2 * A * h / (2 * a1 - a0 * h), d2 = 2 * B * h / (b0 * h + 2 * b1);
-        //остальные уравнения системы
+        double
+                p1 = (2 * a1 + a0 * h) / (2 * a1 - a0 * h),
+                p2 = (2 * b1 - b0 * h) / (b0 * h + 2 * b1),
+                d1 = -2 * A * h / (2 * a1 - a0 * h),
+                d2 = 2 * B * h / (b0 * h + 2 * b1);
+        //коэффициенты для остальных уравнений системы
         for (int i = 1; i < n + 1; i++) {
             ai[i] = 1 - h * p(a - h / 2 + i * h) / 2;
             bi[i] = 1 + h * p(a - h / 2 + i * h) / 2;
@@ -118,11 +126,11 @@ public class Task5 {
             y[i] = mi[i] * y[i + 1] + ki[i];
 
         //выводим значения решения и точного решения в узлах
-        System.out.println("точноеЗначение приближенноеЗначение");
+        System.out.println("Точное значение | Приближенное значение");
         for (int i = 0; i < n + 2; i++)
-            System.out.println(solution(a - h / 2 + i * h) + " " + y[i] );
+            System.out.printf("  %.10f  |  %.10f \n", solution(a - h / 2 + i * h), y[i]);
 
-        //погрешность - максимальная
+        //погрешность - максимум модулей разности
         double maxa = Math.abs(solution(a - h / 2) - y[0]), max = solution(a - h / 2) - y[0];
         for (int i = 1; i < n + 1; i++) {
             if (Math.abs(solution(a - h / 2 + i * h) - y[i]) > maxa) {
@@ -130,7 +138,7 @@ public class Task5 {
                 max = solution(a - h / 2 + i * h) - y[i];
             }
         }
-        System.out.println("Погрешность: " + max);
+        System.out.println("\nПогрешность: " + max);
 //        double sum = 0;
 //        for(int i = 0; i < n + 1; i++){
 //            sum += Math.abs(solution(a - h / 2) - y[0]);
@@ -140,9 +148,6 @@ public class Task5 {
 
     public static void go() {
         System.out.println("Разностный метод решения краевой задачи для обыкновенного дифференциального уравнения второго порядка. Метод прогонки.");
-        System.out.println("Введите n: ");
-        Scanner sc = new Scanner(System.in);
-        n = sc.nextInt();
         basicGrid();
         extendedGrid();
     }
