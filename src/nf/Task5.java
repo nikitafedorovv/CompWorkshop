@@ -75,7 +75,7 @@ public class Task5 {
                 max = solution(a + i * h) - y[i];
             }
 
-        System.out.println("Максимальная погрешность: " + max);
+        System.out.println("Погрешность: " + max);
 
 //        //ищем среднюю погрешность
 //        double sum = 0;
@@ -130,7 +130,7 @@ public class Task5 {
                 max = solution(a - h / 2 + i * h) - y[i];
             }
         }
-        System.out.println("Максимальная погрешность: " + max);
+        System.out.println("Погрешность: " + max);
 //        double sum = 0;
 //        for(int i = 0; i < n + 1; i++){
 //            sum += Math.abs(solution(a - h / 2) - y[0]);
