@@ -11,7 +11,6 @@ public class Task6 {
     private static int M1 = (int)(T / tau1);
     private static int M2 = (int)(T / tau2);
 
-
     private static double exp(double x){
         return Math.exp(x);
     }
@@ -24,25 +23,19 @@ public class Task6 {
 
     private static double solution(double x, double t){
         return exp(0.25 * t) * sin(0.5 * x) - 2 * exp(-t) * (1 - x * x);
-        //return x * exp(-t) - x * x * exp(-t) + exp(-0.25 * t) * Math.cos(0.5 * x);
     }
     private static double f(double x, double t){
         return 0.5 * exp(0.25 * t) * sin(0.5 * x) - 2 * exp(-t) * (1 + x * x);
-        //return exp(-t) * (x * x - x + 2);
     }
     private static double u0(double x){
         return sin(0.5 * x) - 2 * (1 - x * x);
-        //return Math.cos(0.5 * x) + (1 - x) * x;
     }
     private static double u1(double t){
         return -2 * exp(-t);
-        //return exp(-0.25 * t);
     }
     private static double u2(double t){
         return exp(0.25 * t) * sin(0.5);
-        //return exp(-0.25 * t) * Math.cos(0.5);
     }
-
 
     private static void explicitScheme(){
         System.out.println("Явная разностная схема");
